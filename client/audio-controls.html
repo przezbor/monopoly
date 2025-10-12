@@ -1,0 +1,122 @@
+<!-- Audio-Controls für das Monopoly-Spiel -->
+<div id="audioControls" class="audio-controls">
+  <div class="audio-control-panel">
+    <button id="audioToggle" class="audio-btn" title="Audio Ein/Aus">
+      <span id="audioIcon">🔊</span>
+    </button>
+    <div class="volume-control">
+      <label for="volumeSlider">🔊</label>
+      <input 
+        type="range" 
+        id="volumeSlider" 
+        min="0" 
+        max="100" 
+        value="50" 
+        class="volume-slider"
+        title="Lautstärke"
+      >
+      <span id="volumeDisplay">50%</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.audio-controls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.audio-control-panel {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.audio-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.audio-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.audio-btn.disabled {
+  opacity: 0.5;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+}
+
+.volume-slider {
+  width: 100px;
+  height: 5px;
+  background: #ddd;
+  outline: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+#volumeDisplay {
+  min-width: 35px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .audio-controls {
+    top: 5px;
+    right: 5px;
+    padding: 8px;
+  }
+  
+  .audio-control-panel {
+    gap: 10px;
+  }
+  
+  .volume-slider {
+    width: 80px;
+  }
+  
+  .audio-btn {
+    font-size: 18px;
+    padding: 3px 8px;
+  }
+}
+</style>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Multiplayer</title>
+    <link rel="stylesheet" href="styles.css?v=3.1">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+
+    <!-- Hauptcontainer -->
+    <div id="app">
+        
+        <!-- Lobby-Screen -->
+        <div id="lobby-screen" class="screen active">
+            <div class="container">
+                <div class="lobby-header">
+                    <h1 class="game-title">🎲 Monopoly Multiplayer</h1>
+                    <p class="subtitle">Erstelle ein neues Spiel oder trete einem bestehenden Spiel bei</p>
+                </div>
+                
+                <!-- Spieler-Setup -->
+                <div id="player-setup" class="card">
+                    <h2>👤 Spieler-Einstellungen</h2>
+                    <div class="form-group">
+                        <label for="player-name">Dein Name:</label>
+                        <input type="text" id="player-name" placeholder="Spielername eingeben" maxlength="20">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="create-game-btn" class="btn btn-primary">🎮 Neues Spiel erstellen</button>
+                        <button id="join-game-btn" class="btn btn-secondary">🔗 Per Spiel-ID beitreten</button>
+                    </div>
+                    
+                    <!-- Spiel-ID Input (versteckt) -->
+                    <div id="game-id-input" class="form-group" style="display: none;">
+                        <label for="game-id">Spiel-ID:</label>
+                        <input type="text" id="game-id" placeholder="z.B. ABC123">
+                        <div class="button-group">
+                            <button id="join-by-id-btn" class="btn btn-primary">Beitreten</button>
+                            <button id="cancel-join-btn" class="btn btn-secondary">Abbrechen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verfügbare Spiele -->
+                <div id="available-games" class="card">
+                    <div class="card-header">
+                        <h2>🌐 Offene Spiele</h2>
+                        <button id="refresh-games-btn" class="btn btn-refresh">🔄 Aktualisieren</button>
+                    </div>
+                    <div id="games-list" class="games-grid">
+                        <div class="loading-message">Lade Spiele...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spiel-Lobby -->
+        <div id="game-lobby-screen" class="screen">
+            <div class="container">
+                <div class="lobby-header">
+                    <h1>Spiellobby</h1>
+                    <div class="game-info">
+                        <span id="game-id-display">Spiel-ID: </span>
+                        <button id="copy-game-id" class="btn btn-small">Kopieren</button>
+                    </div>
+                </div>
+
+                <div class="lobby-content">
+                    <!-- Spielfigur und Farbe -->
+                    <div class="card">
+                        <h2>🎮 Deine Spielfigur wählen</h2>
+                        <div class="piece-selection">
+                            <div class="piece-option" data-piece="🎩">
+                                <div class="piece-preview">🎩</div>
+                                <span>Zylinder</span>
+                            </div>
+                            <div class="piece-option" data-piece="🦄">
+                                <div class="piece-preview">🦄</div>
+                                <span>Einhorn</span>
+                            </div>
+                            <div class="piece-option" data-piece="🐕">
+                                <div class="piece-preview">🐕</div>
+                                <span>Hund</span>
+                            </div>
+                            <div class="piece-option" data-piece="🚗">
+                                <div class="piece-preview">🚗</div>
+                                <span>Auto</span>
+                            </div>
+                            <div class="piece-option" data-piece="⛵">
+                                <div class="piece-preview">⛵</div>
+                                <span>Schiff</span>
+                            </div>
+                            <div class="piece-option" data-piece="✈️">
+                                <div class="piece-preview">✈️</div>
+                                <span>Flugzeug</span>
+                            </div>
+                            <div class="piece-option" data-piece="🍕">
+                                <div class="piece-preview">🍕</div>
+                                <span>Pizza</span>
+                            </div>
+                            <div class="piece-option" data-piece="👑">
+                                <div class="piece-preview">👑</div>
+                                <span>Krone</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Farbauswahl -->
+                    <div class="card">
+                        <h2>🎨 Deine Farbe wählen</h2>
+                        <div class="color-selection">
+                            <div class="color-option" data-color="red">
+                                <div class="color-preview red"></div>
+                                <span>Rot</span>
+                            </div>
+                            <div class="color-option" data-color="blue">
+                                <div class="color-preview blue"></div>
+                                <span>Blau</span>
+                            </div>
+                            <div class="color-option" data-color="green">
+                                <div class="color-preview green"></div>
+                                <span>Grün</span>
+                            </div>
+                            <div class="color-option" data-color="yellow">
+                                <div class="color-preview yellow"></div>
+                                <span>Gelb</span>
+                            </div>
+                            <div class="color-option" data-color="purple">
+                                <div class="color-preview purple"></div>
+                                <span>Lila</span>
+                            </div>
+                            <div class="color-option" data-color="orange">
+                                <div class="color-preview orange"></div>
+                                <span>Orange</span>
+                            </div>
+                            <div class="color-option" data-color="pink">
+                                <div class="color-preview pink"></div>
+                                <span>Pink</span>
+                            </div>
+                            <div class="color-option" data-color="cyan">
+                                <div class="color-preview cyan"></div>
+                                <span>Türkis</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Spielerliste -->
+                    <div class="card">
+                        <h2>Spieler (<span id="player-count">0</span>/6)</h2>
+                        <div id="players-list"></div>
+                    </div>
+
+                    <!-- Spielsteuerung -->
+                    <div class="card">
+                        <div id="host-controls" style="display: none;">
+                            <button id="start-game-btn" class="btn btn-primary btn-large">Spiel starten</button>
+                            <p class="info-text">Mindestens 2 Spieler erforderlich</p>
+                        </div>
+                        <div id="player-controls">
+                            <p class="info-text">Warte auf den Spielstart...</p>
+                            <button id="leave-game-btn" class="btn btn-secondary">Spiel verlassen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hauptspiel -->
+        <div id="game-screen" class="screen">
+            <!-- Spielbrett -->
+            <div class="game-container">
+                <!-- Chat-Fenster -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3>💬 Chat</h3>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Chat-Nachrichten werden hier angezeigt -->
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Nachricht eingeben..." maxlength="200">
+                        <button id="send-chat-btn" class="btn btn-chat">📤</button>
+                    </div>
+                </div>
+
+                <div class="game-board">
+                    <!-- Spielbrett wird dynamisch generiert -->
+                    <div id="monopoly-board">
+                        <!-- Ecken -->
+                        <div class="corner corner-bottom-right" data-position="0">
+                            <div class="corner-content">
+                                <div class="corner-text">LOS</div>
+                                <div class="corner-subtext">Erhalte 200M</div>
+                            </div>
+                            <div class="field-players"></div>
+                        </div>
+                        
+                        <!-- Untere Seite (Positionen 1-9) -->
+                        <div class="side side-bottom">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                        
+                        <div class="corner corner-bottom-left" data-position="10">
+                            <div class="corner-content">
+                                <div class="corner-text">GEFÄNGNIS</div>
+                                <div class="corner-subtext">Nur Besuch</div>
+                            </div>
+                            <div class="field-players"></div>
+                        </div>
+                        
+                        <!-- Linke Seite (Positionen 11-19) -->
+                        <div class="side side-left">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                        
+                        <div class="corner corner-top-left" data-position="20">
+                            <div class="corner-content">
+                                <div class="corner-text">FREI</div>
+                                <div class="corner-subtext">PARKEN</div>
+                            </div>
+                            <div class="field-players"></div>
+                        </div>
+                        
+                        <!-- Obere Seite (Positionen 21-29) -->
+                        <div class="side side-top">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                        
+                        <div class="corner corner-top-right" data-position="30">
+                            <div class="corner-content">
+                                <div class="corner-text">GEHE</div>
+                                <div class="corner-subtext">INS GEFÄNGNIS</div>
+                            </div>
+                            <div class="field-players"></div>
+                        </div>
+                        
+                        <!-- Rechte Seite (Positionen 31-39) -->
+                        <div class="side side-right">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                        
+                        <!-- Zentrum -->
+                        <div class="board-center">
+                            <div class="center-content">
+                                <div class="game-logo">MONOPOLY</div>
+                                <div id="free-parking-display" class="free-parking-pot">
+                                    <div class="pot-icon">💰</div>
+                                    <div class="pot-label">Frei-Parken-Topf</div>
+                                    <div id="pot-amount" class="pot-amount">0M</div>
+                                </div>
+                                <div id="dice-container">
+                                    <div class="dice" id="dice1">1</div>
+                                    <div class="dice" id="dice2">1</div>
+                                </div>
+                                <button id="roll-dice-btn" class="btn btn-primary">Würfeln</button>
+                                <div id="turn-info">
+                                    <div id="current-player-display"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seitenpanel -->
+                <div class="side-panel">
+                    <!-- Spieler-Info -->
+                    <div class="panel-section">
+                        <h3>Spieler</h3>
+                        <div id="players-info"></div>
+                    </div>
+
+                    <!-- Aktuelle Aktionen -->
+                    <div class="panel-section">
+                        <h3>Aktionen</h3>
+                        <div id="action-panel">
+                            <p>Würfle um zu beginnen</p>
+                        </div>
+                        <button id="open-trade-btn" class="btn btn-trade" style="display: none;">🤝 Handel starten</button>
+                    </div>
+
+                    <!-- Spiel-Log -->
+                    <div class="panel-section">
+                        <h3>Spielverlauf</h3>
+                        <div id="game-log">
+                            <div class="log-entry">Spiel gestartet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <!-- Grundstück kaufen Modal -->
+        <div id="buy-property-modal" class="modal">
+            <div class="modal-content">
+                <h2>Grundstück kaufen</h2>
+                <div id="property-details"></div>
+                <div class="modal-buttons">
+                    <button id="confirm-buy-btn" class="btn btn-primary">Kaufen</button>
+                    <button id="decline-buy-btn" class="btn btn-secondary">Ablehnen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karten Modal -->
+        <div id="card-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="card-title">Ereigniskarte</h2>
+                <div id="card-content"></div>
+                <div class="modal-buttons">
+                    <button id="card-ok-btn" class="btn btn-primary">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Handel initiieren Modal -->
+        <div id="trade-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🤝 Handel starten</h2>
+                    <button id="close-trade-modal" class="close-btn">&times;</button>
+                </div>
+                
+                <div class="trade-form">
+                    <div class="form-group">
+                        <label for="trade-target-player">Handelspartner:</label>
+                        <select id="trade-target-player">
+                            <option value="">Spieler auswählen...</option>
+                        </select>
+                    </div>
+
+                    <div class="trade-section">
+                        <h3>💰 Geld</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="trade-money-offer">Du bietest:</label>
+                                <input type="number" id="trade-money-offer" min="0" value="0" step="1">
+                                <span class="currency">M</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="trade-money-request">Du forderst:</label>
+                                <input type="number" id="trade-money-request" min="0" value="0" step="1">
+                                <span class="currency">M</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trade-section">
+                        <h3>🏠 Deine Grundstücke</h3>
+                        <div id="trade-properties-own" class="trade-properties">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                    </div>
+
+                    <div class="trade-section">
+                        <h3>🏢 Grundstücke des anderen Spielers</h3>
+                        <div id="trade-properties-target" class="trade-properties">
+                            <p class="no-selection">Wähle zuerst einen Spieler aus</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button id="send-trade-offer" class="btn btn-primary">📤 Angebot senden</button>
+                        <button id="cancel-trade-modal" class="btn btn-secondary">Abbrechen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Handelsangebot erhalten Modal -->
+        <div id="trade-offer-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🤝 Handelsangebot erhalten</h2>
+                </div>
+                
+                <div class="trade-offer-content">
+                    <p>Du hast ein Handelsangebot von <strong id="trade-offer-initiator"></strong> erhalten:</p>
+                    
+                    <div class="trade-offer-details">
+                        <pre id="trade-offer-details"></pre>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button id="accept-trade-offer" class="btn btn-success">✅ Annehmen</button>
+                        <button id="reject-trade-offer" class="btn btn-danger">❌ Ablehnen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auktions Modal -->
+        <div id="auction-modal" class="modal">
+            <div class="modal-content auction-content">
+                <div class="modal-header">
+                    <h2 id="auction-title">🔨 Auktion</h2>
+                </div>
+                <div id="auction-info" class="auction-info">
+                    <div class="auction-property-details">
+                        <h3 id="auction-property-name">Grundstück</h3>
+                        <p><strong>Listenpreis:</strong> <span id="auction-list-price">0M</span></p>
+                    </div>
+                    <div class="auction-status">
+                        <p><strong>Aktuelles Gebot:</strong> <span id="auction-current-bid">0M</span></p>
+                        <p><strong>Höchstbietender:</strong> <span id="auction-highest-bidder">Keiner</span></p>
+                        <div id="auction-timer" class="auction-timer">
+                            <span>⏱️ Auktion läuft...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="auction-controls" id="auction-controls">
+                    <div class="bid-input-group">
+                        <input type="number" id="bid-amount" min="1" step="1" placeholder="Dein Gebot...">
+                        <span class="bid-currency">M</span>
+                    </div>
+                    <div class="auction-buttons">
+                        <button id="place-bid-btn" class="btn btn-primary">💰 Bieten</button>
+                        <button id="pass-bid-btn" class="btn btn-secondary">🚫 Passen</button>
+                    </div>
+                </div>
+                <div id="auction-participants" class="auction-participants">
+                    <h4>Teilnehmer:</h4>
+                    <div id="participants-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property Management Modal -->
+        <div id="property-management-modal" class="property-management-modal">
+            <div class="property-management-content">
+                <div class="property-management-header">
+                    <h2 id="property-management-title">Grundstück verwalten</h2>
+                    <button class="close-property-management" id="close-property-management">&times;</button>
+                </div>
+                <div id="property-management-details"></div>
+                <div class="property-management-buttons" id="property-management-buttons">
+                    <!-- Buttons werden dynamisch generiert -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Fehler Toast -->
+        <div id="error-toast" class="toast error">
+            <span id="error-message"></span>
+            <button class="toast-close">&times;</button>
+        </div>
+
+        <!-- Erfolg Toast -->
+        <div id="success-toast" class="toast success">
+            <span id="success-message"></span>
+            <button class="toast-close">&times;</button>
+        </div>
+    </div>
+
+        <!-- Liquidations Modal -->
+        <div id="liquidation-modal" class="modal">
+            <div class="modal-content liquidation-content">
+                <div class="modal-header">
+                    <h2>💸 Liquidation erforderlich</h2>
+                    <p class="liquidation-info">Du hast nicht genug Bargeld. Wähle welche Vermögenswerte du verkaufen/hypothekarisieren möchtest:</p>
+                </div>
+                
+                <div class="liquidation-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Benötigt:</span>
+                        <span id="liquidation-required" class="summary-value">0M</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Verfügbar:</span>
+                        <span id="liquidation-available" class="summary-value">0M</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Noch benötigt:</span>
+                        <span id="liquidation-needed" class="summary-value">0M</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Ausgewählt:</span>
+                        <span id="liquidation-selected" class="summary-value">0M</span>
+                    </div>
+                </div>
+
+                <div class="liquidation-sections">
+                    <!-- Häuser verkaufen -->
+                    <div class="liquidation-section">
+                        <h3>🏠 Häuser verkaufen (halber Preis)</h3>
+                        <div id="liquidation-houses" class="liquidation-items">
+                            <p class="no-items">Keine Häuser zum Verkauf verfügbar</p>
+                        </div>
+                    </div>
+
+                    <!-- Hotels verkaufen -->
+                    <div class="liquidation-section">
+                        <h3>🏨 Hotels verkaufen (halber Preis)</h3>
+                        <div id="liquidation-hotels" class="liquidation-items">
+                            <p class="no-items">Keine Hotels zum Verkauf verfügbar</p>
+                        </div>
+                    </div>
+
+                    <!-- Grundstücke hypothekarisieren -->
+                    <div class="liquidation-section">
+                        <h3>🏦 Grundstücke hypothekarisieren (50% Wert)</h3>
+                        <div id="liquidation-properties" class="liquidation-items">
+                            <p class="no-items">Keine Grundstücke für Hypotheken verfügbar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="confirm-liquidation" class="btn btn-primary" disabled>💸 Liquidieren</button>
+                    <button id="declare-bankruptcy" class="btn btn-danger">💀 Bankrott erklären</button>
+                </div>
+            </div>
+        </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal game-over-modal" style="display: none;">
+        <div class="modal-content game-over-content">
+            <div class="game-over-animation">
+                <div class="winner-crown">👑</div>
+                <h1 id="gameOverTitle" class="game-over-title">🎉 Spiel Beendet! 🎉</h1>
+                <h2 id="gameOverWinner" class="game-over-winner"></h2>
+                <div class="game-over-stats">
+                    <p id="gameOverMessage" class="game-over-message"></p>
+                </div>
+                <div class="game-over-buttons">
+                    <button id="backToLobbyBtn" class="btn btn-primary btn-large">
+                        🏠 Zurück zur Lobby
+                    </button>
+                    <button id="newGameBtn" class="btn btn-secondary btn-large">
+                        🎲 Neues Spiel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <span>programmed with ❤️ by xeno</span>
+            <button id="settingsToggle" class="settings-btn" title="Audio-Einstellungen">
+                ⚙️
+            </button>
+        </div>
+        
+        <!-- Audio Settings Panel (versteckt) -->
+        <div id="audioSettings" class="audio-settings-panel">
+            <div class="settings-content">
+                <div class="settings-row">
+                    <button id="audioToggle" class="audio-btn" title="Audio Ein/Aus">
+                        <span id="audioIcon">🔊</span>
+                    </button>
+                    <span class="settings-label">Audio</span>
+                </div>
+                <div class="settings-row">
+                    <div class="volume-control">
+                        <span class="volume-icon">🔊</span>
+                        <input 
+                            type="range" 
+                            id="volumeSlider" 
+                            min="0" 
+                            max="100" 
+                            value="50" 
+                            class="volume-slider"
+                            title="Lautstärke"
+                        >
+                        <span id="volumeDisplay">50%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="audio-manager.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
